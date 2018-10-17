@@ -76,11 +76,36 @@ public class DAO {
 	 * taille
 	 * @throws java.lang.Exception si la transaction a échoué
 	 */
-	public void createInvoice(CustomerEntity customer, int[] productIDs, int[] quantities)
-		throws Exception {
-		throw new UnsupportedOperationException("Pas encore implémenté");
+	public void createInvoice(CustomerEntity customer, int[] productIDs, int[] quantities) throws Exception {
+            if(productIDs.length != quantities.length)
+                throw new Exception();
+        
+            String invoicesql = "INSERT INTO Invoice (CustomerID) VALUES ?";
+            String itemsql = "INSERT INTO Item (InvoiceID, Item, ProductID, Quantity, Cost) " +
+                            "VALUES(?,?,?,?,(SELECT Price FROM Product WHERE ID = ?))";
+            try (Connection connection = myDataSource.getConnection();
+                        PreparedStatement inv = connection.prepareStatement(invoicesql,Statement.RETURN_GENERATED_KEYS);
+			PreparedStatement item = connection.prepareStatement(itemsql)) {
+                
+			
+                        ResultSet clefs = inv.getGeneratedKeys();
+                        
+                        if(clefs.next()){
+                        int cle= clefs.getInt(1);
+                        for(int i=0;i<productIDs.length;i++){
+                            item.setInt(1, cle);
+                            item.setInt(2,i);
+                            item.setInt(3, productIDs[i]);
+                            item.setInt(4,quantities[i]);
+                            item.setInt(5, productIDs[i]);
+                            
+                        }
+                        }
+		}
+      
+       
+		
 	}
-
 	/**
 	 *
 	 * @return le nombre d'enregistrements dans la table CUSTOMER
